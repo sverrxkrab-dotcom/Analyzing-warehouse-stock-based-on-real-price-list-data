@@ -50,3 +50,23 @@ if len(df_pos) > 0:
     print("\nMost expensive items:")
     print(df_pos.nlargest(5, 'price_rub')[['sku', 'price_rub']].to_string(index=False))
 
+# Average price and value by category
+stats_by_category = df[df['price_rub'] > 0].groupby('price_category').agg({
+    'price_rub': ['count', 'mean', 'median', 'std'],
+    'stock_value': ['sum', 'mean']
+}).round(2)
+
+print("\nStatistics by category:")
+print(stats_by_category)
+
+# Top 3 categories by value share
+top_3_categories = value_by_category.nlargest(3, 'Share (%)')
+print("\nTop 3 categories by value share:")
+print(top_3_categories)
+
+# Pareto analysis (80/20 rule)
+df_sorted = df_pos.sort_values('stock_value', ascending=False)
+df_sorted['cumulative_percent'] = df_sorted['stock_value'].cumsum() / df_sorted['stock_value'].sum() * 100
+items_80_percent = len(df_sorted[df_sorted['cumulative_percent'] <= 80])
+print(f"\nPareto Analysis (80/20 rule):")
+print(f"Items making up 80% of warehouse value: {items_80_percent:,} out of {len(df_pos):,} ({items_80_percent/len(df_pos)*100:.1f}%)")
